@@ -1,6 +1,6 @@
 {
   "name": "Vehicle DBC",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Auto-generated C source files from DBC",
   "build": {
     "flags": "-I include"
