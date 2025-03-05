@@ -26,8 +26,8 @@ jobs:
 
       - name: Generate C source from DBC
         run: |
-          mkdir -p Haltech-CAN/src/
-          python -m cantools generate_c_source r3.dbc --output-directory Haltech-CAN/src/
+          mkdir -p src/
+          python -m cantools generate_c_source r3.dbc --output-directory src/
           echo "Generated C source files from DBC."
 
       - name: Determine new version
@@ -47,7 +47,7 @@ jobs:
 
       - name: Update library.properties with new version
         run: |
-          cat <<EOF > Haltech-CAN/library.properties
+          cat <<EOF > library.properties
           name=Haltech-CAN
           version=${{ env.VERSION }}
           author=Colorado State FSAE
@@ -63,14 +63,14 @@ jobs:
 
       - name: Zip library files
         run: |
-          zip -r Haltech-CAN-${{ env.VERSION }}.zip Haltech-CAN/
+          zip -r Haltech-CAN-${{ env.VERSION }}.zip library.properties src/
           echo "Library files zipped."
 
       - name: Commit and push generated source
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add Haltech-CAN/
+          git add library.properties src/
           git commit -m "Auto-generate C source and set version $VERSION" || echo "No changes to commit"
           git push
 
