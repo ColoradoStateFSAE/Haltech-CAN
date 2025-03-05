@@ -30,42 +30,49 @@ jobs:
           python -m cantools generate_c_source r3.dbc --output-directory src/
           echo "Generated C source files from DBC."
 
+      - name: Create library.properties
+        run: |
+          cat <<EOF > library.properties
+          name=Haltech-CAN
+          version=1.0.0
+          author=Colorado State FSAE
+          maintainer=Colorado State FSAE
+          sentence=A library for integrating Teensy 4.x with Haltech CAN bus messages.
+          paragraph=This library provides constructors for all current Haltech CAN messages.
+          category=Communication
+          url=https://github.com/ColoradoStateFSAE/Haltech-CAN
+          architectures=*
+          depends=
+          EOF
+          echo "library.properties created."
+
       - name: Determine new version
         id: version
         run: |
           git fetch --tags
 
-          # Get the latest version
           LATEST_TAG=$(git tag -l | sort -V | tail -n 1)
-
-          # If no tags exist, default to 1
           if [ -z "$LATEST_TAG" ]; then
-            VERSION="1"
+            VERSION="1.0.0"
           else
-            # Increment the version
-            VERSION_NUMBER=$(echo $LATEST_TAG | sed 's/^//')
-            VERSION_NUMBER=$((VERSION_NUMBER + 1))
-            VERSION="$VERSION_NUMBER"
+            VERSION=$(echo $LATEST_TAG | awk -F. '{printf "%d.%d.%d", $1, $2, $3+1}')
           fi
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Determined version: $VERSION"
 
-      - name: Create new Git tag
+      - name: Zip library files
         run: |
-          git tag ${{ env.VERSION }}
-          git push origin ${{ env.VERSION }}
+          mkdir Haltech-CAN
+          cp src/r3.c src/r3.h library.properties Haltech-CAN/
+          zip -r Haltech-CAN-${{ env.VERSION }}.zip Haltech-CAN/
+          echo "Library files zipped."
 
-      - name: Update library.json with new version
-        run: |
-          jq '.version = env.VERSION' library.json > library.tmp.json && mv library.tmp.json library.json
-          cat library.json
-
-      - name: Commit and push generated source and version update
+      - name: Commit and push generated source
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add src/ library.json
+          git add src/ library.properties
           git commit -m "Auto-generate C source and set version $VERSION" || echo "No changes to commit"
           git push
 
@@ -79,11 +86,9 @@ jobs:
           prerelease: false
           generateReleaseNotes: true
 
-      - name: Upload generated C files to release
+      - name: Upload ZIP file to release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            src/r3.c
-            src/r3.h
+          files: Haltech-CAN-${{ env.VERSION }}.zip
           tag_name: ${{ env.VERSION }}
           fail_on_unmatched_files: true
