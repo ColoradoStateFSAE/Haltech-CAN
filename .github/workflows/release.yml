@@ -63,9 +63,9 @@ jobs:
 
       - name: Zip library files
         run: |
-          mkdir Haltech-CAN
-          cp src/r3.c src/r3.h library.properties Haltech-CAN/
-          zip -r Haltech-CAN-${{ env.VERSION }}.zip Haltech-CAN/
+          mkdir Haltech-CAN-${{ env.VERSION }}
+          cp src/r3.c src/r3.h library.properties Haltech-CAN-${{ env.VERSION }}/
+          zip -r Haltech-CAN-${{ env.VERSION }}.zip Haltech-CAN-${{ env.VERSION }}/
           echo "Library files zipped."
 
       - name: Commit and push generated source
