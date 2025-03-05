@@ -61,16 +61,30 @@ jobs:
           EOF
           echo "Updated library.properties with version ${{ env.VERSION }}."
 
+      - name: Update library.json with new version
+        run: |
+          cat <<EOF > library.json
+          {
+            "name": "Vehicle DBC",
+            "version": "${{ env.VERSION }}",
+            "description": "Auto-generated C source files from DBC",
+            "build": {
+              "flags": "-I include"
+            }
+          }
+          EOF
+          echo "Updated library.json with version ${{ env.VERSION }}."
+
       - name: Zip library files
         run: |
-          zip -r Haltech-CAN-${{ env.VERSION }}.zip library.properties src/
+          zip -r Haltech-CAN-${{ env.VERSION }}.zip library.properties library.json src/
           echo "Library files zipped."
 
       - name: Commit and push generated source
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add library.properties src/
+          git add library.properties library.json src/
           git commit -m "Auto-generate C source and set version $VERSION" || echo "No changes to commit"
           git push
 
